@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="bootstrap.css">
+    <title>Document</title>
+</head>
+
+<body class="bg-dark">
+    <div class="container col-lg-7 col-10 p-lg-5 p-3 mx-auto mt-lg-5 mt-3 shadow-sm">
+        <button onclick="signGoogle()" class="btn btn-warning w-100 my-2">Sign in with Google</button>
+    </div>
+
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, sendEmailVerification } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNJJcfbKEUO4SaU7axXAAMdfJ4GasnLBM",
+            authDomain: "july-gurus.firebaseapp.com",
+            projectId: "july-gurus",
+            storageBucket: "july-gurus.appspot.com",
+            messagingSenderId: "267723530018",
+            appId: "1:267723530018:web:8ed3695a2674971b320f7b"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+
+        const signGoogle = () => {
+            signInWithPopup(auth, provider)
+                .then((result) => {
+                    // The signed-in user info.
+                    const user = result.user;
+                    console.log(user);
+                    sendEmailVerification(auth.currentUser)
+                        .then(() => {
+                            console.log('Email sent');
+                        });
+                    window.location.href = 'dashboard.html'
+                }).catch((error) => {
+                    // Handle Errors here.
+                    const errorCode = error.code;
+                    const errorMessage = error.message;
+                    // The email of the user's account used.
+                    const email = error.customData.email;
+                    // The AuthCredential type that was used.
+                    const credential = GoogleAuthProvider.credentialFromError(error);
+                    console.log(errorCode, errorMessage, email, credential);
+                });
+        }
+        window.signGoogle = signGoogle
+    </script>
+</body>
+
+</html>

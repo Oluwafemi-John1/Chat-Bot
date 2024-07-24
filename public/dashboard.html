@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="bootstrap.css">
+</head>
+
+<body>
+    <h1>Dashboard</h1>
+    <div id="show"></div>
+
+    <h2>Chatbot</h2>
+    <input type="text" placeholder="Enter Message" id="message">
+    <button onclick="sendMsg()">Send</button>
+    <div id="display"></div>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
+        import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-database.js";
+
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDNJJcfbKEUO4SaU7axXAAMdfJ4GasnLBM",
+            authDomain: "july-gurus.firebaseapp.com",
+            projectId: "july-gurus",
+            storageBucket: "july-gurus.appspot.com",
+            databaseURL: "https://july-gurus-default-rtdb.firebaseio.com",
+            messagingSenderId: "267723530018",
+            appId: "1:267723530018:web:8ed3695a2674971b320f7b"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const database = getDatabase(app);
+
+
+        let personName;
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                console.log(user);
+                personName = user.displayName
+                let theirName = user.displayName
+                let email = user.email
+                let pic = user.photoURL
+
+                show.innerHTML += `
+                    <h3>Welcome ${theirName}</h3>
+                    <p>Your email is ${email}</p>
+                    <img src=${pic} alt="Profile pic" />
+                `
+            } else {
+                window.location.href = 'index.html'
+            }
+        });
+
+        const sendMsg = () => {
+            let msgInput = document.getElementById('message').value
+            const time = new Date().toLocaleTimeString()
+            const date = new Date().toLocaleDateString()
+
+            if (msgInput === '') {
+                alert("Type message now")
+            } else {
+                let msg = { msgInput, time, date, personName }
+                console.log(msg);
+                let dbref = ref(database, 'chat/3')
+                set(dbref, msg)
+                document.getElementById('message').value = ''
+            }
+        }
+        window.sendMsg = sendMsg
+
+        let newRef = ref(database, 'chat')
+        onValue(newRef,(snapshot)=>{
+            const data = snapshot.val();
+            console.log(data);
+            display.innerHTML = ''
+            data.map((eachChat)=>{
+                display.innerHTML += `
+                    <div class="my-4 p-3">
+                        <h2>${eachChat.msgInput}</h2>
+                        <h6>${eachChat.personName}</h6>
+                        <small class="me-2">${eachChat.time}</small>
+                        <small>${eachChat.date}</small>
+                    </div>
+                `
+            })
+        })
+    </script>
+</body>
+
+</html>
