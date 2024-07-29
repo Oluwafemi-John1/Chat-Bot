@@ -18,7 +18,8 @@
     <div id="display"></div>
 
     <h1 class="text-center my-5">Upload File</h1>
-    <input type="file" class="form-control" id="media">
+    <div id="prog"></div>
+    <input type="file" class="form-control" id="media" accept="application/pdf">
     <button class="btn btn-dark w-100 my-3" id="upFile">Upload File</button>
 
     <script type="module">
@@ -26,6 +27,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-app.js";
         import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-auth.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-database.js";
+        import { getStorage, ref as stRef, uploadBytesResumable } from "https://www.gstatic.com/firebasejs/10.12.3/firebase-storage.js";
 
 
         // Your web app's Firebase configuration
@@ -43,6 +45,7 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const database = getDatabase(app);
+        const storage = getStorage(app)
 
 
         let personName;
@@ -83,11 +86,11 @@
         window.sendMsg = sendMsg
 
         let newRef = ref(database, 'chat')
-        onValue(newRef,(snapshot)=>{
+        onValue(newRef, (snapshot) => {
             const data = snapshot.val();
             console.log(data);
             display.innerHTML = ''
-            data.map((eachChat)=>{
+            data.map((eachChat) => {
                 display.innerHTML += `
                     <div class="my-4 p-3">
                         <h2>${eachChat.msgInput}</h2>
@@ -100,9 +103,29 @@
         })
 
         const btnFile = document.getElementById('upFile')
-        btnFile.addEventListener('click', ()=>{
+        btnFile.addEventListener('click', () => {
             const neededFile = (document.getElementById('media').files)[0]
-            console.log(neededFile);
+            // console.log(neededFile);
+            const reference = stRef(storage, `${personName}/${neededFile.name}`)
+            const doneUploading = uploadBytesResumable(reference, neededFile)
+            doneUploading.on('state_changed', (snapshot) => {
+                const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+                console.log(progress);
+                if (progress == 100) {
+                    prog.innerHTML = `<p class="alert alert-success p-3 text-center my-3">Upload is ${Math.round(progress)}% done</p>`
+                    setTimeout(()=>{
+                        prog.style.display = 'none'
+                    }, 4000)
+                } else {
+                    prog.innerHTML = `<p class="alert alert-primary p-3 text-center my-3">Upload is ${Math.round(progress)}% done</p>`
+                }
+            })
+            // console.log(doneUploading);
+            // if (doneUploading) {
+            //     alert("Upload done")
+            // } else {
+            //     alert("Upload failed, try again")
+            // }
         })
     </script>
 </body>
